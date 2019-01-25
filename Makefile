@@ -1,5 +1,5 @@
 S3_BUCKET = rcj-sam-packages
-STACK_NAME = golambda-test
+STACK_NAME = srdbot
 
 build:
 	for file in `ls handlers/*.go`; do \

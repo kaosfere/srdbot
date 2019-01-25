@@ -1,19 +1,31 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Resources:
-  HelloWorld:
+  APIStageV1:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: v1
+
+  Ping:
     Type: AWS::Serverless::Function
     Properties:
       Runtime: go1.x
-      Handler: handlers/hello
+      Handler: handlers/ping
       Events:
-        RootHandler:
+        Get:
           Type: Api
           Properties:
-            Path: /
+            Path: /ping
             Method: get
+            RestApiId: !Ref APIStageV1
+        Post:
+          Type: Api
+          Properties:
+            Path: /ping
+            Method: post
+            RestApiId: !Ref APIStageV1
 
-Outputs:
-  Endpoint:
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+#Outputs:
+#  Endpoint:
+#    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
 
