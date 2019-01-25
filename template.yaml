@@ -40,24 +40,24 @@ Resources:
 
 # The echo endpoints displays a lot of info including things such as AWS account number.
 # We really only want it enabled for debuggering.
-#  Echo:
-#    Type: AWS::Serverless::Function
-#    Properties:
-#      Runtime: go1.x
-#      Handler: dist/echo
-#      Events:
-#        Get:
-#          Type: Api
-#          Properties:
-#            Path: /echo
-#            Method: get
-#            RestApiId: !Ref APIStageV1
-#        Post:
-#          Type: Api
-#          Properties:
-#            Path: /echo
-#            Method: post
-#            RestApiId: !Ref APIStageV1
+  Echo:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      Handler: dist/echo
+      Events:
+        Get:
+          Type: Api
+          Properties:
+            Path: /echo
+            Method: get
+            RestApiId: !Ref APIStageV1
+        Post:
+          Type: Api
+          Properties:
+            Path: /echo
+            Method: post
+            RestApiId: !Ref APIStageV1
 
 #Outputs:
 #  Endpoint:

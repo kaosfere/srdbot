@@ -3,8 +3,16 @@ STACK_NAME = srdbot
 
 build:
 	@mkdir -p dist
-	@for file in `ls handlers`; do \
-		GOOS=linux go build -o dist/$$file handlers/$$file/*.go ;\
+	@for handler in `ls handlers`; do \
+		GOOS=linux go build -o dist/$$handler handlers/$$handler/*.go ;\
+	done
+
+test:
+	@for handler in `ls handlers`; do \
+		BASE=`pwd`; \
+		cd handlers/$$handler; \
+		go test; \
+		cd $$BASE; \
 	done
 
 clean:
