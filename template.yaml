@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  HelloWorld:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      Handler: handlers/hello
+      Events:
+        RootHandler:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+
+Outputs:
+  Endpoint:
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+
