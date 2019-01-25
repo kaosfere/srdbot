@@ -10,7 +10,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Runtime: go1.x
-      Handler: handlers/ping
+      Handler: dist/ping
       Events:
         Get:
           Type: Api
@@ -24,6 +24,19 @@ Resources:
             Path: /ping
             Method: post
             RestApiId: !Ref APIStageV1
+  Spells:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      Handler: dist/spells
+      Events:
+        Get:
+          Type: Api
+          Properties:
+            Path: /spells
+            Method: get
+            RestApiId: !Ref APIStageV1
+
 
 #Outputs:
 #  Endpoint:

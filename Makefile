@@ -2,8 +2,8 @@ S3_BUCKET = rcj-sam-packages
 STACK_NAME = srdbot
 
 build:
-	for file in `ls handlers/*.go`; do \
-		GOOS=linux go build -o `echo $$file | sed -e 's/.go$$//;'` $$file ;\
+	for file in `ls handlers`; do \
+		GOOS=linux go build -o dist/$$file handlers/$$file/$$file.go ;\
 	done
 
 package:
