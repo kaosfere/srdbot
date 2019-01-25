@@ -24,17 +24,37 @@ Resources:
             Path: /ping
             Method: post
             RestApiId: !Ref APIStageV1
-  Spells:
+
+  Echo:
     Type: AWS::Serverless::Function
     Properties:
       Runtime: go1.x
-      Handler: dist/spells
+      Handler: dist/echo
       Events:
         Get:
           Type: Api
           Properties:
-            Path: /spells
+            Path: /echo
             Method: get
+            RestApiId: !Ref APIStageV1
+        Post:
+          Type: Api
+          Properties:
+            Path: /echo
+            Method: post
+            RestApiId: !Ref APIStageV1
+
+  SRD:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      Handler: dist/srd
+      Events:
+        Get:
+          Type: Api
+          Properties:
+            Path: /srd
+            Method: post
             RestApiId: !Ref APIStageV1
 
 

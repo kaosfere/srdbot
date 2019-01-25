@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  APIStageV1:
+    Properties:
+      StageName: v1
+    Type: AWS::Serverless::Api
+  Echo:
+    Properties:
+      CodeUri: s3://rcj-sam-packages/37ee85738005b3f793ca970e30d66141
+      Events:
+        Get:
+          Properties:
+            Method: get
+            Path: /echo
+            RestApiId:
+              Ref: APIStageV1
+          Type: Api
+        Post:
+          Properties:
+            Method: post
+            Path: /echo
+            RestApiId:
+              Ref: APIStageV1
+          Type: Api
+      Handler: dist/echo
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+  Ping:
+    Properties:
+      CodeUri: s3://rcj-sam-packages/37ee85738005b3f793ca970e30d66141
+      Events:
+        Get:
+          Properties:
+            Method: get
+            Path: /ping
+            RestApiId:
+              Ref: APIStageV1
+          Type: Api
+        Post:
+          Properties:
+            Method: post
+            Path: /ping
+            RestApiId:
+              Ref: APIStageV1
+          Type: Api
+      Handler: dist/ping
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+  SRD:
+    Properties:
+      CodeUri: s3://rcj-sam-packages/37ee85738005b3f793ca970e30d66141
+      Events:
+        Get:
+          Properties:
+            Method: post
+            Path: /srd
+            RestApiId:
+              Ref: APIStageV1
+          Type: Api
+      Handler: dist/srd
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31
