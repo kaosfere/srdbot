@@ -6,7 +6,7 @@ Resources:
     Type: AWS::Serverless::Api
   Echo:
     Properties:
-      CodeUri: s3://rcj-sam-packages/37ee85738005b3f793ca970e30d66141
+      CodeUri: s3://rcj-sam-packages/f60a3a8180e393361626447f727efa68
       Events:
         Get:
           Properties:
@@ -27,7 +27,7 @@ Resources:
     Type: AWS::Serverless::Function
   Ping:
     Properties:
-      CodeUri: s3://rcj-sam-packages/37ee85738005b3f793ca970e30d66141
+      CodeUri: s3://rcj-sam-packages/f60a3a8180e393361626447f727efa68
       Events:
         Get:
           Properties:
@@ -48,7 +48,7 @@ Resources:
     Type: AWS::Serverless::Function
   SRD:
     Properties:
-      CodeUri: s3://rcj-sam-packages/37ee85738005b3f793ca970e30d66141
+      CodeUri: s3://rcj-sam-packages/f60a3a8180e393361626447f727efa68
       Events:
         Get:
           Properties:

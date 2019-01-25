@@ -12,11 +12,11 @@ import (
 type spellInfo struct {
 	Name          string
 	Desc          string
-	HigherLevel   string `json:"higher_level,omitempty"`
+	HigherLevel   string `json:"higher_level"`
 	Page          string
 	Range         string
 	Components    string
-	Material      string `json:",omitempty"`
+	Material      string
 	Ritual        string
 	Duration      string
 	Concentration string
@@ -25,8 +25,8 @@ type spellInfo struct {
 	LevelInt      int `json:"level_int"`
 	School        string
 	Class         string
-	Archetype     string `json:",omitempty"`
-	Circles       string `json:",omitempty"`
+	Archetype     string
+	Circles       string
 }
 type spellList []spellInfo
 
@@ -35,7 +35,6 @@ func makeAttachment(spell spellInfo) slack.Attachment {
 
 	attachment.Title = spell.Name
 	attachment.Text = spell.Desc
-	attachment.AuthorName = fmt.Sprintf("%s, %s", spell.Level, spell.Class)
 
 	attachment.Fields = []slack.AttachmentField{
 		slack.AttachmentField{
@@ -84,7 +83,6 @@ func makeAttachment(spell spellInfo) slack.Attachment {
 
 func getSpell(name string) (slack.Attachment, error) {
 	var spells spellList
-	//var spell spellInfo
 	var spellAttachment slack.Attachment
 
 	name = strings.ToLower(name)
@@ -100,7 +98,6 @@ func getSpell(name string) (slack.Attachment, error) {
 	}
 
 	for _, spell := range spells {
-		fmt.Println(spell.Name)
 		if strings.ToLower(spell.Name) == name {
 			spellAttachment = makeAttachment(spell)
 			return spellAttachment, nil
@@ -108,4 +105,27 @@ func getSpell(name string) (slack.Attachment, error) {
 	}
 
 	return spellAttachment, nil
+}
+
+func handleSpell(name string) (slack.Msg, error) {
+	var message slack.Msg
+
+	spellAttachment, err := getSpell(name)
+	if err != nil {
+		return message, err
+	}
+
+	if spellAttachment.Title == "" {
+		message = slack.Msg{
+			ResponseType: "ephemeral",
+			Text:         fmt.Sprintf("Spell '%s' not found.", name),
+		}
+	} else {
+		message = slack.Msg{
+			ResponseType: "in_channel",
+			Attachments:  []slack.Attachment{spellAttachment},
+		}
+	}
+
+	return message, nil
 }

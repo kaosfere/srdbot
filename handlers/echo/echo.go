@@ -27,6 +27,7 @@ func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 		return errorResponse(err), nil
 	}
 
+	// Mock up an http request response so we can use ParseForm() to process the body
 	httpRequest, err := http.NewRequest("POST", "", strings.NewReader(request.Body))
 	if err != nil {
 		return errorResponse(err), nil
@@ -36,18 +37,12 @@ func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 
 	err = httpRequest.ParseForm()
 	if err != nil {
-		fmt.Printf("ERR: %s\n", err)
-		return errorResponse(err), nil
-	}
-
-	requestBody, err := json.MarshalIndent(httpRequest.Form, "", "    ")
-	if err != nil {
 		return errorResponse(err), nil
 	}
 
 	message := slack.Msg{
 		ResponseType: "ephemeral",
-		Text:         fmt.Sprintf("Request is: ```%s1```\nBody is: ```%s```", string(requestText), string(requestBody)),
+		Text:         fmt.Sprintf("Request is: ```%s1```", string(requestText)),
 	}
 
 	messageJSON, err := json.Marshal(message)

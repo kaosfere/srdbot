@@ -20,14 +20,9 @@ func errorResponse(err error) events.APIGatewayProxyResponse {
 }
 
 func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	requestText, err := json.MarshalIndent(request, "", "    ")
-	if err != nil {
-		return errorResponse(err), nil
-	}
-
 	message := slack.Msg{
 		ResponseType: "ephemeral",
-		Text:         fmt.Sprintf("```%s1```", string(requestText)),
+		Text:         "SRDBot works!",
 	}
 
 	messageJSON, err := json.Marshal(message)

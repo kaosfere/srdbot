@@ -22,11 +22,9 @@ func errorResponse(err error) events.APIGatewayProxyResponse {
 }
 
 func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	/*requestText, err := json.MarshalIndent(request, "", "    ")
-	if err != nil {
-		return errorResponse(err), nil
-	}*/
+	var message slack.Msg
 
+	// Mock up an http request response so we can use ParseForm() to process the body
 	httpRequest, err := http.NewRequest("POST", "", strings.NewReader(request.Body))
 	if err != nil {
 		return errorResponse(err), nil
@@ -45,49 +43,19 @@ func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 
 	commandType := requestParts[0]
 
-	if commandType == "spell" {
-		spellAttachment, err := getSpell(strings.Join(requestParts[1:], " "))
-		if err != nil {
-			return errorResponse(err), nil
+	switch commandType {
+	case "spell":
+		message, err = handleSpell(strings.Join(requestParts[1:], " "))
+	default:
+		message = slack.Msg{
+			ResponseType: "ephemeral",
+			Text:         fmt.Sprintf("Unknown subcommand: %s\nCurrently supported: spell", requestParts[0]),
 		}
-
-		if spellAttachment.Title == "" {
-			message := slack.Msg{
-				ResponseType: "ephemeral",
-				Text:         "Spell not found",
-			}
-
-			messageJSON, err := json.Marshal(message)
-			if err != nil {
-				return errorResponse(err), nil
-			}
-
-			return events.APIGatewayProxyResponse{
-				Body:       string(messageJSON),
-				StatusCode: 200,
-			}, nil
-		}
-
-		message := slack.Msg{
-			ResponseType: "in_channel",
-			Attachments:  []slack.Attachment{spellAttachment},
-		}
-
-		messageJSON, err := json.Marshal(message)
-		if err != nil {
-			return errorResponse(err), nil
-		}
-
-		return events.APIGatewayProxyResponse{
-			Body:       string(messageJSON),
-			StatusCode: 200,
-		}, nil
-
+		err = nil
 	}
 
-	message := slack.Msg{
-		ResponseType: "ephemeral",
-		Text:         fmt.Sprintf("```%s```", requestParts[0]),
+	if err != nil {
+		return errorResponse(err), nil
 	}
 
 	messageJSON, err := json.Marshal(message)
