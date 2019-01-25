@@ -20,7 +20,7 @@ func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 		response = events.APIGatewayProxyResponse{
 			//Headers:    map[string]string{"content-type": "text/plain"},
 			Body:       string(content),
-			StatusCode: 500,
+			StatusCode: 200,
 		}
 	}
 
