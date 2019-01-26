@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -30,14 +31,14 @@ func (s *spellData) load(source io.Reader) error {
 	return err
 }
 
-func (s spellData) find(name string) srdEntry {
+func (s spellData) find(name string) (srdEntry, error) {
 	var spell spellInfo
 	for _, spell := range s.spells {
 		if strings.ToLower(spell.Name) == strings.ToLower(name) {
-			return spell
+			return spell, nil
 		}
 	}
-	return spell
+	return spell, fmt.Errorf("spell '%s' not found", name)
 }
 
 type spellList []spellInfo

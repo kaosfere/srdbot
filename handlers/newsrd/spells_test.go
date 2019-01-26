@@ -41,7 +41,7 @@ func TestHandleUnkownSpell(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal("ephemeral", message.ResponseType)
 	assert.Equal(0, len(message.Attachments))
-	assert.Equal("Spell 'bogus' not found.", message.Text)
+	assert.Equal("spell 'bogus' not found", message.Text)
 }
 
 func TestHandleMissingSpellsFile(t *testing.T) {

@@ -20,13 +20,22 @@ type srdEntry interface {
 
 type data interface {
 	load(io.Reader) error
-	find(string) srdEntry
+	find(string) (srdEntry, error)
 }
 
 func makeMessage(info srdEntry) (slack.Msg, error) {
 	message := slack.Msg{
 		ResponseType: "in_channel",
 		Attachments:  []slack.Attachment{info.asAttachment()},
+	}
+
+	return message, nil
+}
+
+func makeErrorMessage(err error) (slack.Msg, error) {
+	message := slack.Msg{
+		ResponseType: "ephemeral",
+		Text:         fmt.Sprintf("%s", err),
 	}
 
 	return message, nil
@@ -100,20 +109,8 @@ func main() {
 }
 
 func handleCondition(name string, sourceFile string) (slack.Msg, error) {
-	var message slack.Msg
-	source, err := os.Open(sourceFile)
-	defer source.Close()
-	if err != nil {
-		return message, err
-	}
-
-	conditions, err := loadConditions(source)
-	for _, condition := range conditions {
-		if strings.ToLower(condition.Name) == strings.ToLower(name) {
-			message, err = makeMessage(condition)
-		}
-	}
-
+	data := &conditionData{}
+	message, err := handleItem(name, sourceFile, data)
 	return message, err
 }
 
@@ -136,8 +133,10 @@ func handleItem(name string, sourceFile string, data data) (slack.Msg, error) {
 		return message, err
 	}
 
-	item := data.find(name)
-	message, err = makeMessage(item)
+	item, err := data.find(name)
+	if err != nil {
+		return makeErrorMessage(err)
+	}
 
-	return message, err
+	return makeMessage(item)
 }

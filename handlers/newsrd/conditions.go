@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"strings"
 
 	"github.com/nlopes/slack"
 )
@@ -11,6 +13,30 @@ import (
 type conditionInfo struct {
 	Name string
 	Desc string
+}
+
+type conditionData struct {
+	conditions []conditionInfo
+}
+
+func (c *conditionData) load(source io.Reader) error {
+	data, err := ioutil.ReadAll(source)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, &c.conditions)
+	return err
+}
+
+func (c conditionData) find(name string) (srdEntry, error) {
+	var condition conditionInfo
+	for _, condition := range c.conditions {
+		if strings.ToLower(condition.Name) == strings.ToLower(name) {
+			return condition, nil
+		}
+	}
+	return condition, fmt.Errorf("condition '%s' not found", name)
 }
 
 func (c conditionInfo) asAttachment() slack.Attachment {
