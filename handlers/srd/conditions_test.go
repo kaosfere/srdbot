@@ -9,7 +9,8 @@ import (
 func TestHandleKnownCondition(t *testing.T) {
 	assert := assert.New(t)
 
-	message, err := handleCondition("incapacitated", "../../data/conditions.json")
+	data := &conditionData{}
+	message, err := getItem("incapacitated", "../../data/conditions.json", data)
 	assert.Nil(err)
 	assert.Equal("in_channel", message.ResponseType)
 	assert.Equal(1, len(message.Attachments))
@@ -25,7 +26,8 @@ func TestHandleKnownCondition(t *testing.T) {
 func TestHandleUnkownCondition(t *testing.T) {
 	assert := assert.New(t)
 
-	message, err := handleCondition("bogus", "../../data/conditions.json")
+	data := &conditionData{}
+	message, err := getItem("bogus", "../../data/conditions.json", data)
 	assert.Nil(err)
 	assert.Equal("ephemeral", message.ResponseType)
 	assert.Equal(0, len(message.Attachments))
@@ -33,6 +35,7 @@ func TestHandleUnkownCondition(t *testing.T) {
 }
 
 func TestHandleMissingConditionFile(t *testing.T) {
-	_, err := handleCondition("incapacitated", "bogus")
+	data := &conditionData{}
+	_, err := getItem("incapacitated", "bogus", data)
 	assert.Error(t, err)
 }

@@ -41,7 +41,22 @@ func makeErrorMessage(err error) (slack.Msg, error) {
 	return message, nil
 }
 
-func errorResponse(err error) events.APIGatewayProxyResponse {
+func makeProxyResponse(message slack.Msg, err error) events.APIGatewayProxyResponse {
+	if err != nil {
+		return makeProxyErrorResponse(err)
+	}
+
+	messageJSON, err := json.Marshal(message)
+	if err != nil {
+		return makeProxyErrorResponse(err)
+	}
+
+	return events.APIGatewayProxyResponse{
+		Body:       string(messageJSON),
+		StatusCode: 200,
+	}
+}
+func makeProxyErrorResponse(err error) events.APIGatewayProxyResponse {
 	response := events.APIGatewayProxyResponse{
 		Body:       fmt.Sprintf("{\"error\": \"%s\"}", err),
 		StatusCode: 500,
@@ -50,77 +65,7 @@ func errorResponse(err error) events.APIGatewayProxyResponse {
 	return response
 }
 
-func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var message slack.Msg
-
-	// Mock up an http request response so we can use ParseForm() to process the body
-	httpRequest, err := http.NewRequest("POST", "", strings.NewReader(request.Body))
-	if err != nil {
-		return errorResponse(err), nil
-
-	}
-	httpRequest.Header.Set("content-type", "application/x-www-form-urlencoded")
-
-	err = httpRequest.ParseForm()
-	if err != nil {
-		return errorResponse(err), nil
-	}
-
-	if len(httpRequest.PostForm["text"]) == 0 {
-		return errorResponse(fmt.Errorf("Malformed command body")), nil
-	}
-	requestBody := httpRequest.PostForm["text"][0]
-	requestParts := strings.Split(requestBody, " ")
-
-	commandType := requestParts[0]
-
-	switch commandType {
-	case "spell":
-		message, err = handleSpell(strings.Join(requestParts[1:], " "),
-			"data/spells.json")
-	case "condition":
-		message, err = handleCondition(strings.Join(requestParts[1:], " "),
-			"data/conditions.json")
-	default:
-		message = slack.Msg{
-			ResponseType: "ephemeral",
-			Text:         fmt.Sprintf("Unknown subcommand: %s", requestParts[0]),
-		}
-		err = nil
-	}
-
-	if err != nil {
-		return errorResponse(err), nil
-	}
-
-	messageJSON, err := json.Marshal(message)
-	if err != nil {
-		return errorResponse(err), nil
-	}
-
-	return events.APIGatewayProxyResponse{
-		Body:       string(messageJSON),
-		StatusCode: 200,
-	}, nil
-}
-
-func main() {
-	lambda.Start(handleRequest)
-}
-
-func handleCondition(name string, sourceFile string) (slack.Msg, error) {
-	data := &conditionData{}
-	message, err := handleItem(name, sourceFile, data)
-	return message, err
-}
-
-func handleSpell(name string, sourceFile string) (slack.Msg, error) {
-	data := &spellData{}
-	message, err := handleItem(name, sourceFile, data)
-	return message, err
-}
-
-func handleItem(name string, sourceFile string, data srdData) (slack.Msg, error) {
+func getItem(name string, sourceFile string, data srdData) (slack.Msg, error) {
 	var message slack.Msg
 	source, err := os.Open(sourceFile)
 	defer source.Close()
@@ -139,4 +84,59 @@ func handleItem(name string, sourceFile string, data srdData) (slack.Msg, error)
 	}
 
 	return makeMessage(item)
+}
+
+func handleCommand(command string, args string) (slack.Msg, error) {
+	var err error
+	var message slack.Msg
+
+	switch command {
+	case "spell":
+		data := &spellData{}
+		message, err = getItem(args, "data/spells.json", data)
+	case "condition":
+		data := &conditionData{}
+		message, err = getItem(args, "data/conditions.json", data)
+	default:
+		message = slack.Msg{
+			ResponseType: "ephemeral",
+			Text:         fmt.Sprintf("Unknown subcommand: %s", command),
+		}
+		err = nil
+	}
+
+	return message, err
+}
+
+func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var message slack.Msg
+
+	// Mock up an http request response so we can use ParseForm() to process the body
+	httpRequest, err := http.NewRequest("POST", "", strings.NewReader(request.Body))
+	if err != nil {
+		return makeProxyResponse(message, err), nil
+	}
+
+	httpRequest.Header.Set("content-type", "application/x-www-form-urlencoded")
+
+	err = httpRequest.ParseForm()
+	if err != nil {
+		return makeProxyResponse(message, err), nil
+	}
+
+	if len(httpRequest.PostForm["text"]) == 0 {
+		return makeProxyResponse(message, fmt.Errorf("Malformed command body")), nil
+	}
+	requestBody := httpRequest.PostForm["text"][0]
+	requestParts := strings.Split(requestBody, " ")
+
+	command := requestParts[0]
+	args := strings.Join(requestParts[1:], " ")
+	message, err = handleCommand(command, args)
+
+	return makeProxyResponse(message, err), nil
+}
+
+func main() {
+	lambda.Start(handleRequest)
 }

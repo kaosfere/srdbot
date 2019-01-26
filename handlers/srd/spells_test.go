@@ -19,7 +19,8 @@ func TestHandleKnownSpell(t *testing.T) {
 
 	assert := assert.New(t)
 
-	message, err := handleSpell("fly", "../../data/spells.json")
+	data := &spellData{}
+	message, err := getItem("fly", "../../data/spells.json", data)
 	assert.Nil(err)
 	assert.Equal("in_channel", message.ResponseType)
 	assert.Equal(1, len(message.Attachments))
@@ -43,7 +44,8 @@ func TestHandleKnownSpell(t *testing.T) {
 func TestHandleUnkownSpell(t *testing.T) {
 	assert := assert.New(t)
 
-	message, err := handleSpell("bogus", "../../data/spells.json")
+	data := &spellData{}
+	message, err := getItem("bogus", "../../data/spells.json", data)
 	assert.Nil(err)
 	assert.Equal("ephemeral", message.ResponseType)
 	assert.Equal(0, len(message.Attachments))
@@ -51,6 +53,7 @@ func TestHandleUnkownSpell(t *testing.T) {
 }
 
 func TestHandleMissingSpellsFile(t *testing.T) {
-	_, err := handleSpell("fly", "bogus")
+	data := &spellData{}
+	_, err := getItem("fly", "bogus", data)
 	assert.Error(t, err)
 }

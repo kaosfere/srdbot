@@ -11,7 +11,7 @@ import (
 
 func TestErrorResponse(t *testing.T) {
 	err := fmt.Errorf("test")
-	response := errorResponse(err)
+	response := makeProxyErrorResponse(err)
 	assert.Equal(t, 500, response.StatusCode)
 	assert.Equal(t, "{\"error\": \"test\"}", response.Body)
 }
