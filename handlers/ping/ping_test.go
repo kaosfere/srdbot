@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/nlopes/slack"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPing(t *testing.T) {
@@ -14,33 +15,22 @@ func TestPing(t *testing.T) {
 	var request events.APIGatewayProxyRequest
 	response, _ := handleRequest(request)
 
-	if response.StatusCode != 200 {
-		t.Errorf("Incorrect status code: %d", response.StatusCode)
-	}
+	assert := assert.New(t)
+	assert.Equal(200, response.StatusCode)
 
 	err := json.Unmarshal([]byte(response.Body), &body)
-	if err != nil {
-		t.Errorf("Error unmarshalling response: %s", err)
-
-	}
-	if body.ResponseType != "ephemeral" {
-		t.Errorf("Incorrect ResponseType: %s", body.ResponseType)
+	if !assert.Nil(err) {
+		t.Log("Unmarshal failed.  Unable to continue.")
+		t.FailNow()
 	}
 
-	if body.Text != "SRDBot works!" {
-		t.Errorf("Incorrect message format: %s", body.Text)
-	}
+	assert.Equal("ephemeral", body.ResponseType)
+	assert.Equal("SRDBot works!", body.Text)
 }
 
-func TestError(t *testing.T) {
+func TestErrorResponse(t *testing.T) {
 	err := fmt.Errorf("test")
 	response := errorResponse(err)
-
-	if response.StatusCode != 500 {
-		t.Errorf("Incorrect status code: %d", response.StatusCode)
-	}
-
-	if response.Body != "{\"error\": \"test\"}" {
-		t.Errorf("Incorrect message format: %s", response.Body)
-	}
+	assert.Equal(t, 500, response.StatusCode)
+	assert.Equal(t, "{\"error\": \"test\"}", response.Body)
 }

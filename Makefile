@@ -11,7 +11,7 @@ test:
 	@for handler in `ls handlers`; do \
 		BASE=`pwd`; \
 		cd handlers/$$handler; \
-		go test; \
+		go test -v; \
 		cd $$BASE; \
 	done
 

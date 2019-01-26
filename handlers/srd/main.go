@@ -34,22 +34,25 @@ func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 
 	err = httpRequest.ParseForm()
 	if err != nil {
-		fmt.Printf("ERR: %s\n", err)
 		return errorResponse(err), nil
 	}
 
-	requestBody := httpRequest.Form["text"][0]
+	if len(httpRequest.PostForm["text"]) == 0 {
+		return errorResponse(fmt.Errorf("Malformed command body")), nil
+	}
+	requestBody := httpRequest.PostForm["text"][0]
 	requestParts := strings.Split(requestBody, " ")
 
 	commandType := requestParts[0]
 
 	switch commandType {
 	case "spell":
-		message, err = handleSpell(strings.Join(requestParts[1:], " "))
+		message, err = handleSpell(strings.Join(requestParts[1:], " "),
+			"data/spells.json")
 	default:
 		message = slack.Msg{
 			ResponseType: "ephemeral",
-			Text:         fmt.Sprintf("Unknown subcommand: %s\nCurrently supported: spell", requestParts[0]),
+			Text:         fmt.Sprintf("Unknown subcommand: %s", requestParts[0]),
 		}
 		err = nil
 	}

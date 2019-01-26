@@ -64,7 +64,7 @@ func makeAttachment(spell spellInfo) slack.Attachment {
 		},
 		slack.AttachmentField{
 			Title: "Duration",
-			Value: spell.Range,
+			Value: spell.Duration,
 			Short: true,
 		},
 	}
@@ -81,13 +81,13 @@ func makeAttachment(spell spellInfo) slack.Attachment {
 	return attachment
 }
 
-func getSpell(name string) (slack.Attachment, error) {
+func getSpell(name string, sourceFile string) (slack.Attachment, error) {
 	var spells spellList
 	var spellAttachment slack.Attachment
 
 	name = strings.ToLower(name)
 
-	content, err := ioutil.ReadFile("data/spells.json")
+	content, err := ioutil.ReadFile(sourceFile)
 	if err != nil {
 		return spellAttachment, err
 	}
@@ -107,10 +107,10 @@ func getSpell(name string) (slack.Attachment, error) {
 	return spellAttachment, nil
 }
 
-func handleSpell(name string) (slack.Msg, error) {
+func handleSpell(name string, sourceFile string) (slack.Msg, error) {
 	var message slack.Msg
 
-	spellAttachment, err := getSpell(name)
+	spellAttachment, err := getSpell(name, sourceFile)
 	if err != nil {
 		return message, err
 	}
