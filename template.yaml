@@ -37,19 +37,6 @@ Resources:
             Path: /srd
             Method: post
             RestApiId: !Ref APIStageV1
-
-  NewSRD:
-    Type: AWS::Serverless::Function
-    Properties:
-      Runtime: go1.x
-      Handler: dist/newsrd
-      Events:
-        Get:
-          Type: Api
-          Properties:
-            Path: /newsrd
-            Method: post
-            RestApiId: !Ref APIStageV1
             
 # The echo endpoints displays a lot of info including things such as AWS account number.
 # We really only want it enabled for debuggering.

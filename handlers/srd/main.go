@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -11,6 +13,33 @@ import (
 
 	"github.com/nlopes/slack"
 )
+
+type srdEntry interface {
+	asAttachment() slack.Attachment
+}
+
+type srdData interface {
+	load(io.Reader) error
+	find(string) (srdEntry, error)
+}
+
+func makeMessage(info srdEntry) (slack.Msg, error) {
+	message := slack.Msg{
+		ResponseType: "in_channel",
+		Attachments:  []slack.Attachment{info.asAttachment()},
+	}
+
+	return message, nil
+}
+
+func makeErrorMessage(err error) (slack.Msg, error) {
+	message := slack.Msg{
+		ResponseType: "ephemeral",
+		Text:         fmt.Sprintf("%s", err),
+	}
+
+	return message, nil
+}
 
 func errorResponse(err error) events.APIGatewayProxyResponse {
 	response := events.APIGatewayProxyResponse{
@@ -77,4 +106,37 @@ func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 
 func main() {
 	lambda.Start(handleRequest)
+}
+
+func handleCondition(name string, sourceFile string) (slack.Msg, error) {
+	data := &conditionData{}
+	message, err := handleItem(name, sourceFile, data)
+	return message, err
+}
+
+func handleSpell(name string, sourceFile string) (slack.Msg, error) {
+	data := &spellData{}
+	message, err := handleItem(name, sourceFile, data)
+	return message, err
+}
+
+func handleItem(name string, sourceFile string, data srdData) (slack.Msg, error) {
+	var message slack.Msg
+	source, err := os.Open(sourceFile)
+	defer source.Close()
+	if err != nil {
+		return message, err
+	}
+
+	err = data.load(source)
+	if err != nil {
+		return message, err
+	}
+
+	item, err := data.find(name)
+	if err != nil {
+		return makeErrorMessage(err)
+	}
+
+	return makeMessage(item)
 }

@@ -27,8 +27,14 @@ func TestHandleKnownSpell(t *testing.T) {
 	if len(message.Attachments) > 0 {
 		attachment := message.Attachments[0]
 		assert.Equal("Fly", attachment.Title)
+		fieldsPresent := make([]string, 0)
 		for _, field := range attachment.Fields {
 			assert.Equal(fieldValues[field.Title], field.Value, field.Title)
+			fieldsPresent = append(fieldsPresent, field.Title)
+		}
+
+		for field := range fieldValues {
+			assert.Contains(fieldsPresent, field)
 		}
 	}
 
@@ -41,7 +47,7 @@ func TestHandleUnkownSpell(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal("ephemeral", message.ResponseType)
 	assert.Equal(0, len(message.Attachments))
-	assert.Equal("Spell 'bogus' not found.", message.Text)
+	assert.Equal("spell 'bogus' not found", message.Text)
 }
 
 func TestHandleMissingSpellsFile(t *testing.T) {

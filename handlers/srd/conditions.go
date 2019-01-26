@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"strings"
 
@@ -14,60 +15,33 @@ type conditionInfo struct {
 	Desc string
 }
 
-type conditionList []conditionInfo
+type conditionData struct {
+	conditions []conditionInfo
+}
 
-func makeConditionAttachment(condition conditionInfo) slack.Attachment {
+func (c *conditionData) load(source io.Reader) error {
+	data, err := ioutil.ReadAll(source)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, &c.conditions)
+	return err
+}
+
+func (c conditionData) find(name string) (srdEntry, error) {
+	var condition conditionInfo
+	for _, condition := range c.conditions {
+		if strings.ToLower(condition.Name) == strings.ToLower(name) {
+			return condition, nil
+		}
+	}
+	return condition, fmt.Errorf("condition '%s' not found", name)
+}
+
+func (c conditionInfo) asAttachment() slack.Attachment {
 	var attachment slack.Attachment
-	attachment.Title = condition.Name
-	attachment.Text = condition.Desc
+	attachment.Title = c.Name
+	attachment.Text = c.Desc
 	return attachment
-}
-
-func getCondition(name string, sourceFile string) (slack.Attachment, error) {
-	var conditions conditionList
-	var conditionAttachment slack.Attachment
-
-	name = strings.ToLower(name)
-
-	content, err := ioutil.ReadFile(sourceFile)
-	if err != nil {
-		return conditionAttachment, err
-	}
-
-	err = json.Unmarshal(content, &conditions)
-	if err != nil {
-		return conditionAttachment, err
-	}
-
-	for _, condition := range conditions {
-		if strings.ToLower(condition.Name) == name {
-			conditionAttachment = makeConditionAttachment(condition)
-			return conditionAttachment, nil
-		}
-	}
-
-	return conditionAttachment, nil
-}
-
-func handleCondition(name string, sourceFile string) (slack.Msg, error) {
-	var message slack.Msg
-
-	conditionAttachment, err := getCondition(name, sourceFile)
-	if err != nil {
-		return message, err
-	}
-
-	if conditionAttachment.Title == "" {
-		message = slack.Msg{
-			ResponseType: "ephemeral",
-			Text:         fmt.Sprintf("Condition '%s' not found.", name),
-		}
-	} else {
-		message = slack.Msg{
-			ResponseType: "in_channel",
-			Attachments:  []slack.Attachment{conditionAttachment},
-		}
-	}
-
-	return message, nil
 }

@@ -29,7 +29,7 @@ func TestHandleUnkownCondition(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal("ephemeral", message.ResponseType)
 	assert.Equal(0, len(message.Attachments))
-	assert.Equal("Condition 'bogus' not found.", message.Text)
+	assert.Equal("condition 'bogus' not found", message.Text)
 }
 
 func TestHandleMissingConditionFile(t *testing.T) {

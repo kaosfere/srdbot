@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"strings"
 
@@ -28,11 +29,35 @@ type spellInfo struct {
 	Archetype     string
 	Circles       string
 }
+
+type spellData struct {
+	spells []spellInfo
+}
+
+func (s *spellData) load(source io.Reader) error {
+	data, err := ioutil.ReadAll(source)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, &s.spells)
+	return err
+}
+
+func (s spellData) find(name string) (srdEntry, error) {
+	var spell spellInfo
+	for _, spell := range s.spells {
+		if strings.ToLower(spell.Name) == strings.ToLower(name) {
+			return spell, nil
+		}
+	}
+	return spell, fmt.Errorf("spell '%s' not found", name)
+}
+
 type spellList []spellInfo
 
-func makeSpellAttachment(spell spellInfo) slack.Attachment {
+func (spell spellInfo) asAttachment() slack.Attachment {
 	var attachment slack.Attachment
-
 	attachment.Title = spell.Name
 	attachment.Text = spell.Desc
 
@@ -79,53 +104,4 @@ func makeSpellAttachment(spell spellInfo) slack.Attachment {
 	}
 
 	return attachment
-}
-
-func getSpell(name string, sourceFile string) (slack.Attachment, error) {
-	var spells spellList
-	var spellAttachment slack.Attachment
-
-	name = strings.ToLower(name)
-
-	content, err := ioutil.ReadFile(sourceFile)
-	if err != nil {
-		return spellAttachment, err
-	}
-
-	err = json.Unmarshal(content, &spells)
-	if err != nil {
-		return spellAttachment, err
-	}
-
-	for _, spell := range spells {
-		if strings.ToLower(spell.Name) == name {
-			spellAttachment = makeSpellAttachment(spell)
-			return spellAttachment, nil
-		}
-	}
-
-	return spellAttachment, nil
-}
-
-func handleSpell(name string, sourceFile string) (slack.Msg, error) {
-	var message slack.Msg
-
-	spellAttachment, err := getSpell(name, sourceFile)
-	if err != nil {
-		return message, err
-	}
-
-	if spellAttachment.Title == "" {
-		message = slack.Msg{
-			ResponseType: "ephemeral",
-			Text:         fmt.Sprintf("Spell '%s' not found.", name),
-		}
-	} else {
-		message = slack.Msg{
-			ResponseType: "in_channel",
-			Attachments:  []slack.Attachment{spellAttachment},
-		}
-	}
-
-	return message, nil
 }
