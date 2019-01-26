@@ -27,8 +27,14 @@ func TestHandleKnownSpell(t *testing.T) {
 	if len(message.Attachments) > 0 {
 		attachment := message.Attachments[0]
 		assert.Equal("Fly", attachment.Title)
+		fieldsPresent := make([]string, 0)
 		for _, field := range attachment.Fields {
 			assert.Equal(fieldValues[field.Title], field.Value, field.Title)
+			fieldsPresent = append(fieldsPresent, field.Title)
+		}
+
+		for field, _ := range fieldValues {
+			assert.Contains(fieldsPresent, field)
 		}
 	}
 

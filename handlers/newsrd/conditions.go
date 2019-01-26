@@ -45,19 +45,3 @@ func (c conditionInfo) asAttachment() slack.Attachment {
 	attachment.Text = c.Desc
 	return attachment
 }
-
-func (c conditionInfo) name() string {
-	return c.Name
-}
-
-func loadConditions(source io.Reader) ([]conditionInfo, error) {
-	var conditions []conditionInfo
-
-	data, err := ioutil.ReadAll(source)
-	if err != nil {
-		return conditions, err
-	}
-
-	err = json.Unmarshal(data, &conditions)
-	return conditions, err
-}

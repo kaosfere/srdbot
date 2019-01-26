@@ -11,10 +11,23 @@ import (
 )
 
 type spellInfo struct {
-	Name  string
-	Desc  string
-	Level string
-	Class string
+	Name          string
+	Desc          string
+	HigherLevel   string `json:"higher_level"`
+	Page          string
+	Range         string
+	Components    string
+	Material      string
+	Ritual        string
+	Duration      string
+	Concentration string
+	CastingTime   string `json:"casting_time"`
+	Level         string
+	LevelInt      int `json:"level_int"`
+	School        string
+	Class         string
+	Archetype     string
+	Circles       string
 }
 
 type spellData struct {
@@ -59,22 +72,36 @@ func (spell spellInfo) asAttachment() slack.Attachment {
 			Value: spell.Class,
 			Short: true,
 		},
+		slack.AttachmentField{
+			Title: "Casting Time",
+			Value: spell.CastingTime,
+			Short: true,
+		},
+		slack.AttachmentField{
+			Title: "Range",
+			Value: spell.Range,
+			Short: true,
+		},
+		slack.AttachmentField{
+			Title: "Components",
+			Value: spell.Components,
+			Short: true,
+		},
+		slack.AttachmentField{
+			Title: "Duration",
+			Value: spell.Duration,
+			Short: true,
+		},
 	}
+
+	if spell.HigherLevel != "" {
+		attachment.Fields = append(attachment.Fields,
+			slack.AttachmentField{
+				Title: "At Higher Levels",
+				Value: spell.HigherLevel,
+			},
+		)
+	}
+
 	return attachment
-}
-
-func (spell spellInfo) name() string {
-	return spell.Name
-}
-
-func loadSpells(source io.Reader) ([]spellInfo, error) {
-	var spells []spellInfo
-
-	data, err := ioutil.ReadAll(source)
-	if err != nil {
-		return spells, err
-	}
-
-	err = json.Unmarshal(data, &spells)
-	return spells, err
 }
