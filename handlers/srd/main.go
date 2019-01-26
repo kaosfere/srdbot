@@ -23,6 +23,13 @@ type srdData interface {
 	find(string) (srdEntry, error)
 }
 
+type commandConfig struct {
+	sourceFile string
+	dataList   srdData
+}
+
+type commandConfigs map[string]commandConfig
+
 func makeMessage(info srdEntry) (slack.Msg, error) {
 	message := slack.Msg{
 		ResponseType: "in_channel",
@@ -56,6 +63,7 @@ func makeProxyResponse(message slack.Msg, err error) events.APIGatewayProxyRespo
 		StatusCode: 200,
 	}
 }
+
 func makeProxyErrorResponse(err error) events.APIGatewayProxyResponse {
 	response := events.APIGatewayProxyResponse{
 		Body:       fmt.Sprintf("{\"error\": \"%s\"}", err),
@@ -65,7 +73,7 @@ func makeProxyErrorResponse(err error) events.APIGatewayProxyResponse {
 	return response
 }
 
-func getItem(name string, sourceFile string, data srdData) (slack.Msg, error) {
+func getItem(name string, sourceFile string, dataList srdData) (slack.Msg, error) {
 	var message slack.Msg
 	source, err := os.Open(sourceFile)
 	defer source.Close()
@@ -73,12 +81,12 @@ func getItem(name string, sourceFile string, data srdData) (slack.Msg, error) {
 		return message, err
 	}
 
-	err = data.load(source)
+	err = dataList.load(source)
 	if err != nil {
 		return message, err
 	}
 
-	item, err := data.find(name)
+	item, err := dataList.find(name)
 	if err != nil {
 		return makeErrorMessage(err)
 	}
@@ -86,18 +94,13 @@ func getItem(name string, sourceFile string, data srdData) (slack.Msg, error) {
 	return makeMessage(item)
 }
 
-func handleCommand(command string, args string) (slack.Msg, error) {
+func handleCommand(command string, args string, configs commandConfigs) (slack.Msg, error) {
 	var err error
 	var message slack.Msg
 
-	switch command {
-	case "spell":
-		data := &spellData{}
-		message, err = getItem(args, "data/spells.json", data)
-	case "condition":
-		data := &conditionData{}
-		message, err = getItem(args, "data/conditions.json", data)
-	default:
+	if config, ok := configs[command]; ok {
+		message, err = getItem(args, config.sourceFile, config.dataList)
+	} else {
 		message = slack.Msg{
 			ResponseType: "ephemeral",
 			Text:         fmt.Sprintf("Unknown subcommand: %s", command),
@@ -110,6 +113,11 @@ func handleCommand(command string, args string) (slack.Msg, error) {
 
 func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var message slack.Msg
+
+	commands := commandConfigs{
+		"spell":     commandConfig{"data/spells.json", &spellData{}},
+		"condition": commandConfig{"data/conditions.json", &conditionData{}},
+	}
 
 	// Mock up an http request response so we can use ParseForm() to process the body
 	httpRequest, err := http.NewRequest("POST", "", strings.NewReader(request.Body))
@@ -132,7 +140,7 @@ func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 
 	command := requestParts[0]
 	args := strings.Join(requestParts[1:], " ")
-	message, err = handleCommand(command, args)
+	message, err = handleCommand(command, args, commands)
 
 	return makeProxyResponse(message, err), nil
 }
