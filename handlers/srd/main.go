@@ -141,6 +141,7 @@ func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 	commands := commandConfigs{
 		"spell":     commandConfig{"data/spells.json", &spellData{}},
 		"condition": commandConfig{"data/conditions.json", &conditionData{}},
+		"race":      commandConfig{"data/races.json", &raceData{}},
 	}
 
 	// Mock up an http request response so we can use ParseForm() to process the body

@@ -54,8 +54,6 @@ func (s spellData) find(name string) (srdEntry, error) {
 	return spell, fmt.Errorf("spell '%s' not found", name)
 }
 
-type spellList []spellInfo
-
 func (spell spellInfo) asAttachment() slack.Attachment {
 	var attachment slack.Attachment
 	attachment.Title = spell.Name
