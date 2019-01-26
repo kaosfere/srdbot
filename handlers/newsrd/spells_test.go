@@ -33,7 +33,7 @@ func TestHandleKnownSpell(t *testing.T) {
 			fieldsPresent = append(fieldsPresent, field.Title)
 		}
 
-		for field, _ := range fieldValues {
+		for field := range fieldValues {
 			assert.Contains(fieldsPresent, field)
 		}
 	}
