@@ -45,16 +45,3 @@ func TestUnknownCommandType(t *testing.T) {
 	assert.False(bodyText["replace_original"].(bool))
 	assert.False(bodyText["delete_original"].(bool))
 }
-
-/* func TestSpellCommand(t *testing.T) {
-	// This fails because of the JSON file path.
-	// Might need to be further paramaterized or something.
-	var request events.APIGatewayProxyReques
-	request.Body = "text=spell"
-
-	response, err := handleRequest(request)
-	assert.Nil(t, err)
-	assert.Equal(t, 200, response.StatusCode)
-	assert.Equal(t, "", response.Body)
-}
-*/

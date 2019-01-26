@@ -8,9 +8,9 @@ import (
 
 func TestHandleKnownCondition(t *testing.T) {
 	assert := assert.New(t)
+	config := commandConfigs{"condition": commandConfig{"../../data/conditions.json", &conditionData{}}}
+	message, err := handleCommand("condition", "incapacitated", config)
 
-	data := &conditionData{}
-	message, err := getItem("incapacitated", "../../data/conditions.json", data)
 	assert.Nil(err)
 	assert.Equal("in_channel", message.ResponseType)
 	assert.Equal(1, len(message.Attachments))
@@ -25,9 +25,9 @@ func TestHandleKnownCondition(t *testing.T) {
 
 func TestHandleUnkownCondition(t *testing.T) {
 	assert := assert.New(t)
+	config := commandConfigs{"condition": commandConfig{"../../data/conditions.json", &conditionData{}}}
+	message, err := handleCommand("condition", "bogus", config)
 
-	data := &conditionData{}
-	message, err := getItem("bogus", "../../data/conditions.json", data)
 	assert.Nil(err)
 	assert.Equal("ephemeral", message.ResponseType)
 	assert.Equal(0, len(message.Attachments))
@@ -35,7 +35,7 @@ func TestHandleUnkownCondition(t *testing.T) {
 }
 
 func TestHandleMissingConditionFile(t *testing.T) {
-	data := &conditionData{}
-	_, err := getItem("incapacitated", "bogus", data)
+	config := commandConfigs{"condition": commandConfig{"bogus", &conditionData{}}}
+	_, err := handleCommand("condition", "incapacitated", config)
 	assert.Error(t, err)
 }

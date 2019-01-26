@@ -18,9 +18,9 @@ func TestHandleKnownSpell(t *testing.T) {
 	}
 
 	assert := assert.New(t)
+	config := commandConfigs{"spell": commandConfig{"../../data/spells.json", &spellData{}}}
+	message, err := handleCommand("spell", "fly", config)
 
-	data := &spellData{}
-	message, err := getItem("fly", "../../data/spells.json", data)
 	assert.Nil(err)
 	assert.Equal("in_channel", message.ResponseType)
 	assert.Equal(1, len(message.Attachments))
@@ -29,6 +29,7 @@ func TestHandleKnownSpell(t *testing.T) {
 		attachment := message.Attachments[0]
 		assert.Equal("Fly", attachment.Title)
 		fieldsPresent := make([]string, 0)
+
 		for _, field := range attachment.Fields {
 			assert.Equal(fieldValues[field.Title], field.Value, field.Title)
 			fieldsPresent = append(fieldsPresent, field.Title)
@@ -43,9 +44,9 @@ func TestHandleKnownSpell(t *testing.T) {
 
 func TestHandleUnkownSpell(t *testing.T) {
 	assert := assert.New(t)
+	config := commandConfigs{"spell": commandConfig{"../../data/spells.json", &spellData{}}}
+	message, err := handleCommand("spell", "bogus", config)
 
-	data := &spellData{}
-	message, err := getItem("bogus", "../../data/spells.json", data)
 	assert.Nil(err)
 	assert.Equal("ephemeral", message.ResponseType)
 	assert.Equal(0, len(message.Attachments))
@@ -53,7 +54,7 @@ func TestHandleUnkownSpell(t *testing.T) {
 }
 
 func TestHandleMissingSpellsFile(t *testing.T) {
-	data := &spellData{}
-	_, err := getItem("fly", "bogus", data)
+	config := commandConfigs{"spell": commandConfig{"bogus", &spellData{}}}
+	_, err := handleCommand("spell", "fly", config)
 	assert.Error(t, err)
 }
