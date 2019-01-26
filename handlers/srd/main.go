@@ -49,6 +49,9 @@ func handleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 	case "spell":
 		message, err = handleSpell(strings.Join(requestParts[1:], " "),
 			"data/spells.json")
+	case "condition":
+		message, err = handleCondition(strings.Join(requestParts[1:], " "),
+			"data/conditions.json")
 	default:
 		message = slack.Msg{
 			ResponseType: "ephemeral",

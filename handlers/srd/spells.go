@@ -30,7 +30,7 @@ type spellInfo struct {
 }
 type spellList []spellInfo
 
-func makeAttachment(spell spellInfo) slack.Attachment {
+func makeSpellAttachment(spell spellInfo) slack.Attachment {
 	var attachment slack.Attachment
 
 	attachment.Title = spell.Name
@@ -99,7 +99,7 @@ func getSpell(name string, sourceFile string) (slack.Attachment, error) {
 
 	for _, spell := range spells {
 		if strings.ToLower(spell.Name) == name {
-			spellAttachment = makeAttachment(spell)
+			spellAttachment = makeSpellAttachment(spell)
 			return spellAttachment, nil
 		}
 	}
